@@ -1,0 +1,14 @@
+actuator/*
+button/*
+hello_spi/*
+home_spi/*
+lora_home_spi/
+photoresistor_actuator/*
+radio_first/*
+radio_receiver/*
+temp_humidity/*
+temp_humidity_uno_r3/*
+test_lora_home_spi/*
+test_spi_controller/*
+**/.vscode/*
+**/*.BAK*
