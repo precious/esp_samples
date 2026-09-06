@@ -19,11 +19,12 @@ SemaphoreHandle_t MUTEX_A = NULL;
 SemaphoreHandle_t MUTEX_B = NULL;
 
 void IRAM_ATTR button_pressed() {
+  static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
   static unsigned long last_button_pressed_ms = 0;
   unsigned long ms = millis();
   if (ms - last_button_pressed_ms > BUTTON_DEBOUNCE_MS) {
     last_button_pressed_ms = ms;
-    xQueueSend(BUTTON_RAW_PRESS_QUEUE, &ms, portMAX_DELAY);
+    xQueueSendFromISR(BUTTON_RAW_PRESS_QUEUE, &ms, &xHigherPriorityTaskWoken);
   };
 }
 
