@@ -8,6 +8,7 @@
 #include "file_system.h"
 #include "fire_buzzer.h"
 #include "obstacle_avoidance_module.h"
+#include "pwm.h"
 #include "rgb_state_led.h"
 #include "start_stop_button.h"
 #include "state_machine.h"
@@ -23,6 +24,8 @@
 
 #define START_BUTTON_PIN 2
 #define STOP_BUTTON_PIN 4
+
+#define PWM_PIN 5
 
 const char AP_SSID[] = "InstigatorAP";
 const char AP_PASSWORD[] = SECRET_WIFI_PASS;
@@ -55,6 +58,7 @@ void setup() {
   std::vector<Verifiable*> all_modules{
       new ObstacleAvoidanceModule(OBSTACLE_AVOIDANCE_MODULE_PIN, do_start, do_stop, do_fire),
       new StartStopButton(START_BUTTON_PIN, STOP_BUTTON_PIN, do_start, do_stop, do_fire),
+      new PWMController(PWM_PIN, do_start, do_stop, do_fire),
       new FireBuzzer(FIRE_BUZZER_PIN, get_current_state_details),
       new FileSystem(1024 * 64 * 4),  //
       new ConfigManager(true),
