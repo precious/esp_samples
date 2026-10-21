@@ -7,6 +7,8 @@
 #include "file_system.h"
 #include "fire_buzzer.h"
 #include "obstacle_avoidance_module.h"
+#include "rgb_state_led.h"
+#include "start_stop_button.h"
 #include "state_machine.h"
 #include "web_server.h"
 #include "wifi_access_point.h"
@@ -15,13 +17,16 @@
 #define OBSTACLE_AVOIDANCE_MODULE_PIN 23
 #define SECONDS_BEFORE_ARM 10
 
+#define RGB_STATE_LED_RED_PIN 18
+#define RGB_STATE_LED_GREEN_PIN 19
+#define RGB_STATE_LED_BLUE_PIN 21
+
+#define START_BUTTON_PIN 2
+#define STOP_BUTTON_PIN 4
+
 const char AP_SSID[] = "InstigatorAP";
 const char AP_PASSWORD[] = SECRET_WIFI_PASS;
 static_assert(sizeof(AP_PASSWORD) > 1, "WiFi password cannot be empty!");
-
-void noop() {
-  Serial.println("noop");
-}
 
 StateMachine state_machine(SECONDS_BEFORE_ARM);
 std::vector<Repeatable*> repeatable_modules;
@@ -29,19 +34,22 @@ std::vector<Repeatable*> repeatable_modules;
 void setup() {
   Serial.begin(115200);
 
-  auto on_start = []() { state_machine.handle_event(Event::DO_START, ""); };
-  auto on_stop = []() { state_machine.handle_event(Event::DO_STOP, ""); };
-  auto on_fire = []() { state_machine.handle_event(Event::DO_FIRE, ""); };
-  auto get_current_state = []() { return state_machine.get_current_state(); };
-  auto get_current_state_message = []() { return state_machine.get_current_state_message(); };
+  auto do_start = []() { state_machine.handle_event(Event::DO_START, ""); };
+  auto do_stop = []() { state_machine.handle_event(Event::DO_STOP, ""); };
+  auto do_fire = []() { state_machine.handle_event(Event::DO_FIRE, ""); };
+  auto get_current_state_details = []() { return state_machine.get_current_state_details(); };
 
   // create modules -- all modules are verifiable
   std::vector<Verifiable*> all_modules{
-      new ObstacleAvoidanceModule(OBSTACLE_AVOIDANCE_MODULE_PIN, on_start, on_stop, on_fire),
-      new FireBuzzer(FIRE_BUZZER_PIN, get_current_state, get_current_state_message),
+      new ObstacleAvoidanceModule(OBSTACLE_AVOIDANCE_MODULE_PIN, do_start, do_stop, do_fire),
+      new StartStopButton(START_BUTTON_PIN, STOP_BUTTON_PIN, do_start, do_stop, do_fire),
+      new FireBuzzer(FIRE_BUZZER_PIN, get_current_state_details),
       new FileSystem(1024 * 64 * 4),  //
       new WiFiAccessPoint((char*)AP_SSID, (char*)AP_PASSWORD),
-      new SimpleWebServer(on_start, on_stop, on_fire, get_current_state, get_current_state_message)};
+      new SimpleWebServer(do_start, do_stop, do_fire, get_current_state_details),
+      new RGBStateLED(RGB_STATE_LED_RED_PIN, RGB_STATE_LED_GREEN_PIN, RGB_STATE_LED_BLUE_PIN, get_current_state_details)
+
+  };
 
   // initialize and check all modules
   for (Verifiable* module : all_modules) {
@@ -67,7 +75,8 @@ void setup() {
     }
   }
 
-  Serial.println("Setup complete, num of repeatable modules: " + String(repeatable_modules.size()));
+  // set once again the initial status to safe to ensure all modules are aware of it
+  state_machine.handle_event(Event::DO_STOP, "Initialized");
 }
 
 void loop() {
