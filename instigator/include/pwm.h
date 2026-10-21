@@ -24,6 +24,11 @@ class PWMController : public Repeatable, public Controller {
   // 2000 us command = fire
   inline static bool one_instance_exists = false;
 
+  enum class Command { NONE, START, STOP, FIRE };
+
+  Command last_command = Command::NONE;
+  uint8_t matching_command_frames = 0;
+
  public:
   PWMController(int pin, std::function<void()> do_start, std::function<void()> do_stop, std::function<void()> do_fire)
       : Controller(do_start, do_stop, do_fire) {
@@ -53,11 +58,40 @@ class PWMController : public Repeatable, public Controller {
       pulseReady = false;
       interrupts();
 
+      Command command = Command::NONE;
       if (width >= 1000 - 50 && width <= 1000 + 50) {
-        do_start();
+        command = Command::START;
       } else if (width >= 1500 - 50 && width <= 1500 + 50) {
-        do_stop();
+        command = Command::STOP;
       } else if (width >= 2000 - 50 && width <= 2000 + 50) {
+        command = Command::FIRE;
+      }
+
+      // a command requires two consecutive valid, matching PWM frames before it is dispatched, and is dispatched
+      // once per command change. This rejects a one-frame glitch without adding signal-loss behavior or changing
+      // terminal FIRE semantics
+      if (command == Command::NONE) {
+        last_command = Command::NONE;
+        matching_command_frames = 0;
+        return;
+      }
+
+      if (command != last_command) {
+        last_command = command;
+        matching_command_frames = 1;
+        return;
+      }
+
+      if (matching_command_frames != 1) {
+        return;
+      }
+      matching_command_frames = 2;
+
+      if (command == Command::START) {
+        do_start();
+      } else if (command == Command::STOP) {
+        do_stop();
+      } else {
         do_fire();
       }
     }
