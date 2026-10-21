@@ -15,9 +15,9 @@ class ObstacleAvoidanceModule : public Controller, public Repeatable {
   inline static bool one_instance_exists = false;
 
  public:
-  ObstacleAvoidanceModule(int pin, std::function<void()> on_start, std::function<void()> on_stop,
-                          std::function<void()> on_fire)
-      : Controller(on_start, on_stop, on_fire) {
+  ObstacleAvoidanceModule(int pin, std::function<void()> do_start, std::function<void()> do_stop,
+                          std::function<void()> do_fire)
+      : Controller(do_start, do_stop, do_fire) {
     this->pin = pin;
   }
 
@@ -73,7 +73,7 @@ class ObstacleAvoidanceModule : public Controller, public Repeatable {
   void repeat() override {
     if (obstacle_fired) {
       obstacle_fired = false;
-      on_fire();
+      do_fire();
     }
   }
 };

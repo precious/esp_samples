@@ -7,8 +7,7 @@ class FireBuzzer : public Display {
   int pin;
 
  public:
-  FireBuzzer(int pin, std::function<State()> get_current_state, std::function<std::string()> get_current_state_message)
-      : Display(get_current_state, get_current_state_message) {
+  FireBuzzer(int pin, std::function<StateDetails()> get_current_state_details) : Display(get_current_state_details) {
     this->pin = pin;
   }
 
@@ -27,7 +26,7 @@ class FireBuzzer : public Display {
   }
 
   void handle_state_change() override {
-    if (get_current_state() == State::FIRE) {
+    if (get_current_state_details().state == State::FIRE) {
       fire();
     }
   }

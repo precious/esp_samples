@@ -50,10 +50,6 @@ class StateMachine {
 
   void _cancel_arm_timer_and_set_state(State new_state, std::string message_internal, std::string message_external) {
     _cancel_arm_timer();  // any set state call cancels timer, even if the new state is the same as the current state
-    if (current_state == new_state) {
-      _set_message("State unchanged", message_internal + " | " + message_external);
-      return;
-    }
     if ((new_state == State::ARM || new_state == State::FIRE) && !_is_sanity_arm_timer_check_passed()) {
       // something went wrong
       current_state = State::UNRECOVERABLE;
@@ -76,21 +72,21 @@ class StateMachine {
       : current_state(State::SAFE), current_state_message("SAFE"), seconds_before_arm(seconds_before_arm) {
   }
 
-  State get_current_state() const {
-    return current_state;
-  }
-
-  std::string get_current_state_message() {
-    std::string extra = "";
+  StateDetails get_current_state_details() {
+    std::string timer_message = "";
     if (_is_arm_timer_active()) {
       uint64_t passed_ms = millis() - last_arm_timer_start_ms, remaining_ms = seconds_before_arm * 1000 - passed_ms;
       if (remaining_ms > 0) {
         uint64_t remaining_seconds = remaining_ms / 1000, h = remaining_seconds / 3600,
                  m = (remaining_seconds % 3600) / 60, s = remaining_seconds % 60;
-        extra = std::to_string(h) + "h " + std::to_string(m) + "m " + std::to_string(s) + "s";
+        timer_message = std::to_string(h) + "h " + std::to_string(m) + "m " + std::to_string(s) + "s";
       }
     }
-    return current_state_message + (extra.empty() ? "" : " | " + extra);
+    StateDetails details;
+    details.state = current_state;
+    details.message = current_state_message + (timer_message.empty() ? "" : " | " + timer_message);
+    details.is_arm_timer_active = _is_arm_timer_active();
+    return details;
   }
 
   void handle_event(Event event, std::string message) {

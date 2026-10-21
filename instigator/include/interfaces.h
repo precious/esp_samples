@@ -24,6 +24,12 @@ std::string get_state_name(State state) {
   return "Unknown";
 }
 
+struct StateDetails {
+  State state;
+  std::string message;
+  bool is_arm_timer_active;
+};
+
 enum class Event { DO_START, DO_STOP, DO_FIRE, FAILURE };
 
 class Repeatable;
@@ -41,16 +47,6 @@ class Verifiable {
   virtual Display* as_display() {
     return nullptr;
   }
-
-  // // return `this` when the object also supports repeatable.
-  // virtual Repeatable* as_repeatable() {
-  //   return nullptr;
-  // }
-
-  // // return `this` when the object also supports display.
-  // virtual Display* as_display() {
-  //   return nullptr;
-  // }
 };
 
 class Repeatable : public virtual Verifiable {
@@ -64,13 +60,11 @@ class Repeatable : public virtual Verifiable {
 
 class Display : public virtual Verifiable {
  protected:
-  std::function<State()> get_current_state;
-  std::function<std::string()> get_current_state_message;
+  std::function<StateDetails()> get_current_state_details;
 
  public:
-  Display(std::function<State()> get_current_state, std::function<std::string()> get_current_state_message) {
-    this->get_current_state = get_current_state;
-    this->get_current_state_message = get_current_state_message;
+  Display(std::function<StateDetails()> get_current_state_details) {
+    this->get_current_state_details = get_current_state_details;
   }
 
   virtual void handle_state_change() = 0;
@@ -82,15 +76,15 @@ class Display : public virtual Verifiable {
 
 class Controller : public virtual Verifiable {
  protected:
-  std::function<void()> on_start;
-  std::function<void()> on_stop;
-  std::function<void()> on_fire;
+  std::function<void()> do_start;
+  std::function<void()> do_stop;
+  std::function<void()> do_fire;
 
  public:
-  Controller(std::function<void()> on_start, std::function<void()> on_stop, std::function<void()> on_fire) {
-    this->on_start = on_start;
-    this->on_stop = on_stop;
-    this->on_fire = on_fire;
+  Controller(std::function<void()> do_start, std::function<void()> do_stop, std::function<void()> do_fire) {
+    this->do_start = do_start;
+    this->do_stop = do_stop;
+    this->do_fire = do_fire;
   }
 };
 

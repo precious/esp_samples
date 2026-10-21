@@ -65,30 +65,31 @@ class SimpleWebServer : public Controller, public Display, public Repeatable {
   }
 
   void _handleHome() {
-    std::string content = MAIN_PAGE_CONTENT + "<div>Current state: <b>" + get_state_name(get_current_state()) +
-                          "</b> (" + get_current_state_message() + ")</div><br>";
+    auto current_state_details = get_current_state_details();
+    std::string content = MAIN_PAGE_CONTENT + "<div>Current state: <b>" + get_state_name(current_state_details.state) +
+                          "</b> (" + current_state_details.message + ")</div><br>";
     server.send(200, "text/html", content.c_str());
   }
 
   void _handleStart() {
-    on_start();
+    do_start();
     server.send(200, "application/json", "{\"status\":\"ok\"}");
   }
 
   void _handleStop() {
-    on_stop();
+    do_stop();
     server.send(200, "application/json", "{\"status\":\"ok\"}");
   }
 
   void _handleFire() {
-    on_fire();
+    do_fire();
     server.send(200, "application/json", "{\"status\":\"ok\"}");
   }
 
  public:
-  SimpleWebServer(std::function<void()> on_start, std::function<void()> on_stop, std::function<void()> on_fire,
-                  std::function<State()> get_current_state, std::function<std::string()> get_current_state_message)
-      : Controller(on_start, on_stop, on_fire), Display(get_current_state, get_current_state_message), server(80) {
+  SimpleWebServer(std::function<void()> do_start, std::function<void()> do_stop, std::function<void()> do_fire,
+                  std::function<StateDetails()> get_current_state_details)
+      : Controller(do_start, do_stop, do_fire), Display(get_current_state_details), server(80) {
   }
 
   std::string get_name() override {
