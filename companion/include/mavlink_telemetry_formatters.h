@@ -1,3 +1,6 @@
+#ifndef MAVLINK_TELEMETRY_FORMATTERS_H
+#define MAVLINK_TELEMETRY_FORMATTERS_H
+
 #include <mavlink.h>
 
 #include <algorithm>
@@ -210,9 +213,8 @@ class MAVLinkRawImuMessageFormatter : public MAVLinkMessageFormatterBase {
 class MAVLinkScaledPressureMessageFormatter : public MAVLinkMessageFormatterBase {
  public:
   MessageMeta get_message_meta() override {
-    return MessageMeta{MAVLINK_MSG_ID_SCALED_PRESSURE,
-                       "SCALED_PRESSURE",
-                       {"absolute (hPa)", "differential (hPa)", "temperature (C)"}};
+    return MessageMeta{
+        MAVLINK_MSG_ID_SCALED_PRESSURE, "SCALED_PRESSURE", {"absolute (hPa)", "differential (hPa)", "temperature (C)"}};
   }
 
   int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
@@ -229,10 +231,9 @@ class MAVLinkScaledPressureMessageFormatter : public MAVLinkMessageFormatterBase
 class MAVLinkGpsRawIntMessageFormatter : public MAVLinkMessageFormatterBase {
  public:
   MessageMeta get_message_meta() override {
-    return MessageMeta{
-        MAVLINK_MSG_ID_GPS_RAW_INT,
-        "GPS_RAW_INT",
-        {"fix", "sats", "lat_lon", "alt (m)", "eph (m)", "epv (m)", "vel (m/s)", "cog (deg)"}};
+    return MessageMeta{MAVLINK_MSG_ID_GPS_RAW_INT,
+                       "GPS_RAW_INT",
+                       {"fix", "sats", "lat_lon", "alt (m)", "eph (m)", "epv (m)", "vel (m/s)", "cog (deg)"}};
   }
 
   int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
@@ -243,8 +244,7 @@ class MAVLinkGpsRawIntMessageFormatter : public MAVLinkMessageFormatterBase {
     fields[std::min(counter++, size - 1)] = MessageField(p.satellites_visible);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
-    snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.7f,%.7f", p.lat / 1e7f,
-             p.lon / 1e7f);
+    snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.7f,%.7f", p.lat / 1e7f, p.lon / 1e7f);
     fields[std::min(counter++, size - 1)] = MessageField(p.alt / 1000.0f);
     fields[std::min(counter++, size - 1)] = MessageField(p.eph / 100.0f);
     fields[std::min(counter++, size - 1)] = MessageField(p.epv / 100.0f);
@@ -284,8 +284,7 @@ class MAVLinkTerrainReportMessageFormatter : public MAVLinkMessageFormatterBase 
     mavlink_msg_terrain_report_decode(msg, &p);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
-    snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.7f,%.7f", p.lat / 1e7f,
-             p.lon / 1e7f);
+    snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.7f,%.7f", p.lat / 1e7f, p.lon / 1e7f);
     fields[std::min(counter++, size - 1)] = MessageField(p.spacing);
     fields[std::min(counter++, size - 1)] = MessageField(p.terrain_height);
     fields[std::min(counter++, size - 1)] = MessageField(p.current_height);
@@ -300,8 +299,7 @@ class MAVLinkEkfStatusReportMessageFormatter : public MAVLinkMessageFormatterBas
   MessageMeta get_message_meta() override {
     return MessageMeta{MAVLINK_MSG_ID_EKF_STATUS_REPORT,
                        "EKF_STATUS_REPORT",
-                       {"flags (hex)", "velocity_var", "pos_horiz_var", "pos_vert_var", "compass_var",
-                        "terrain_var"}};
+                       {"flags (hex)", "velocity_var", "pos_horiz_var", "pos_vert_var", "compass_var", "terrain_var"}};
   }
 
   int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
@@ -349,8 +347,7 @@ class MAVLinkAttitudeMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{
         MAVLINK_MSG_ID_ATTITUDE,
         "ATTITUDE",
-        {"roll (deg)", "pitch (deg)", "yaw (deg)", "rollspeed (deg/s)", "pitchspeed (deg/s)",
-         "yawspeed (deg/s)"}};
+        {"roll (deg)", "pitch (deg)", "yaw (deg)", "rollspeed (deg/s)", "pitchspeed (deg/s)", "yawspeed (deg/s)"}};
   }
 
   int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
@@ -387,7 +384,8 @@ class MAVLinkGlobalPositionIntMessageFormatter : public MAVLinkMessageFormatterB
     fields[std::min(counter++, size - 1)] = MessageField(p.relative_alt / 1000.0f);
     index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
-    snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.2f,%.2f,%.2f", p.vx / 100.0f, p.vy / 100.0f, p.vz / 100.0f);
+    snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.2f,%.2f,%.2f", p.vx / 100.0f,
+             p.vy / 100.0f, p.vz / 100.0f);
     fields[std::min(counter++, size - 1)] = MessageField(p.hdg / 100.0f);
     return std::min(counter, size);
   }
@@ -436,3 +434,5 @@ std::unordered_map<int, MAVLinkMessageFormatterBase*> _make_map_from_array(
   return map;
 }
 std::unordered_map<int, MAVLinkMessageFormatterBase*> formatters_map = _make_map_from_array(formatters);
+
+#endif  // MAVLINK_TELEMETRY_FORMATTERS_H
