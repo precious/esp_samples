@@ -16,9 +16,9 @@ class StreamingMAVLinkTelemetryCSVWriter {
   MessageField fields[MAX_FIELDS_NUM];
 
   template <typename T>
-  static void _print_to_streams(std::vector<Stream*>& streams, T val) {
+  static void _print_to_streams(std::vector<Stream*> streams, T val, int* bytes_counter) {
     for (auto& stream : streams) {
-      stream->print(val);
+      *bytes_counter += stream->print(val);
     }
   }
 
@@ -43,19 +43,22 @@ class StreamingMAVLinkTelemetryCSVWriter {
     }
   }
 
-  void write_header(std::vector<Stream*>& streams) {
-    _print_to_streams(streams, "companion_uptime_ms");
+  int write_header(std::vector<Stream*> streams) {
+    int bytes_written = 0;
+    _print_to_streams(streams, "companion_uptime_ms", &bytes_written);
     for (const auto& formatter : _formatters) {
       auto message_meta = formatter->get_message_meta();
       for (int j = 0; j < message_meta.header.size(); ++j) {
-        _print_to_streams(streams, ",");
-        _print_to_streams(streams, message_meta.header[j].c_str());
+        _print_to_streams(streams, ",", &bytes_written);
+        _print_to_streams(streams, message_meta.header[j].c_str(), &bytes_written);
       }
     }
-    _print_to_streams(streams, "\n");
+    _print_to_streams(streams, "\n", &bytes_written);
+    return bytes_written;
   }
 
-  void flush(std::vector<Stream*>& streams) {
+  int flush(std::vector<Stream*> streams) {
+    int bytes_written = 0;
     // check queues first
     int max_queue_size = 0;
     bool overflow = false;
@@ -69,7 +72,7 @@ class StreamingMAVLinkTelemetryCSVWriter {
 
     // write values
     for (int line = 0; line < max_queue_size; ++line) {
-      _print_to_streams(streams, millis());
+      _print_to_streams(streams, millis(), &bytes_written);
       for (const auto& formatter : _formatters) {
         auto& msg_queue = _queue_by_msg_id[formatter->get_message_meta().mavlink_msg_id];
         int num_header_fields = formatter->get_message_meta().header.size();
@@ -78,42 +81,46 @@ class StreamingMAVLinkTelemetryCSVWriter {
           msg_queue.pop();
           int num_fields = formatter->extract_message_fields(&msg, fields, MAX_FIELDS_NUM);
           if (num_fields != num_header_fields) {
-            _print_to_streams(streams, "ERROR: FIELDS NUM MISMATCH");
+            _print_to_streams(streams, "ERROR: FIELDS NUM MISMATCH", &bytes_written);
           }
           for (int i = 0; i < num_fields; ++i) {
-            _print_to_streams(streams, ",");
+            _print_to_streams(streams, ",", &bytes_written);
             switch (fields[i].type) {
               case FieldDataType::int64_t:
-                _print_to_streams(streams, fields[i].int64_t_value);
+                _print_to_streams(streams, fields[i].int64_t_value, &bytes_written);
                 break;
               case FieldDataType::uint64_t:
-                _print_to_streams(streams, fields[i].uint64_t_value);
+                _print_to_streams(streams, fields[i].uint64_t_value, &bytes_written);
                 break;
               case FieldDataType::float_:
-                _print_to_streams(streams, fields[i].float_value);
+                _print_to_streams(streams, fields[i].float_value, &bytes_written);
                 break;
               case FieldDataType::string_:
-                _print_to_streams(streams, "\"");
-                _print_to_streams(streams, fields[i].string_value);
-                _print_to_streams(streams, "\"");
+                _print_to_streams(streams, "\"", &bytes_written);
+                _print_to_streams(streams, fields[i].string_value, &bytes_written);
+                _print_to_streams(streams, "\"", &bytes_written);
                 break;
               default:
-                _print_to_streams(streams, "UNKNOWN");
+                _print_to_streams(streams, "UNKNOWN", &bytes_written);
                 break;
             }
           }
         } else {  // print just commas for missing fields
           for (int i = 0; i < num_header_fields; ++i) {
-            _print_to_streams(streams, ",");
+            _print_to_streams(streams, ",", &bytes_written);
           }
         }
       }
-      _print_to_streams(streams, "\n");
+      _print_to_streams(streams, "\n", &bytes_written);
     }
 
     // error message if needed
     if (overflow) {
-      _print_to_streams(streams, "ERROR: QUEUE OVERFLOW, SOME MESSAGES MAY BE DROPPED\n");
+      _print_to_streams(streams, "ERROR: QUEUE OVERFLOW, SOME MESSAGES MAY BE DROPPED\n", &bytes_written);
     }
+    for (auto& stream : streams) {
+      stream->flush();
+    }
+    return bytes_written;
   }
 };
