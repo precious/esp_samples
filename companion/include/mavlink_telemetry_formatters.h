@@ -50,7 +50,7 @@ class MAVLinkMessageFormatterBase {
   virtual MessageMeta get_message_meta() = 0;
   // extract message fields into the provided array of pairs (type, pointer to value). return the number of fields
   // extracted. if number of fields exceeds the provided array size, some fields are silently dropped
-  virtual int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) = 0;
+  virtual int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) = 0;
 };
 
 class MAVLinkSysStatusMessageFormatter : public MAVLinkMessageFormatterBase {
@@ -60,10 +60,10 @@ class MAVLinkSysStatusMessageFormatter : public MAVLinkMessageFormatterBase {
         MAVLINK_MSG_ID_SYS_STATUS, "SYS_STATUS", {"battery (mV)", "current (cA)", "remaining (%)", "load (0-1000)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_sys_status_t p;
-    mavlink_msg_sys_status_decode(&msg, &p);
+    mavlink_msg_sys_status_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.voltage_battery);
     fields[std::min(counter++, size - 1)] = MessageField(p.current_battery);
     fields[std::min(counter++, size - 1)] = MessageField(p.battery_remaining);
@@ -78,10 +78,10 @@ class MAVLinkPowerStatusMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{MAVLINK_MSG_ID_POWER_STATUS, "POWER_STATUS", {"vcc (mV)", "servo (mV)", "flags (hex)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_power_status_t p;
-    mavlink_msg_power_status_decode(&msg, &p);
+    mavlink_msg_power_status_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.Vcc);
     fields[std::min(counter++, size - 1)] = MessageField(p.Vservo);
     int index = std::min(counter++, size - 1);
@@ -97,10 +97,10 @@ class MAVLinkMeminfoMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{MAVLINK_MSG_ID_MEMINFO, "MEMINFO", {"heap_top (bytes)", "free (bytes)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_meminfo_t p;
-    mavlink_msg_meminfo_decode(&msg, &p);
+    mavlink_msg_meminfo_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.brkval);
     fields[std::min(counter++, size - 1)] = MessageField(p.freemem32 ? p.freemem32 : p.freemem);
     return std::min(counter, size);
@@ -116,10 +116,10 @@ class MAVLinkNavControllerOutputMessageFormatter : public MAVLinkMessageFormatte
                         "wp_distance (m)", "alt_error (m)", "xtrack_error (m)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_nav_controller_output_t p;
-    mavlink_msg_nav_controller_output_decode(&msg, &p);
+    mavlink_msg_nav_controller_output_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.nav_roll);
     fields[std::min(counter++, size - 1)] = MessageField(p.nav_pitch);
     fields[std::min(counter++, size - 1)] = MessageField(p.nav_bearing);
@@ -137,10 +137,10 @@ class MAVLinkMissionCurrentMessageFormatter : public MAVLinkMessageFormatterBase
     return MessageMeta{MAVLINK_MSG_ID_MISSION_CURRENT, "MISSION_CURRENT", {"sequence"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_mission_current_t p;
-    mavlink_msg_mission_current_decode(&msg, &p);
+    mavlink_msg_mission_current_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.seq);
     return std::min(counter, size);
   }
@@ -152,10 +152,10 @@ class MAVLinkServoOutputRawMessageFormatter : public MAVLinkMessageFormatterBase
     return MessageMeta{MAVLINK_MSG_ID_SERVO_OUTPUT_RAW, "SERVO_OUTPUT_RAW", {"port", "servo1_to_8"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_servo_output_raw_t p;
-    mavlink_msg_servo_output_raw_decode(&msg, &p);
+    mavlink_msg_servo_output_raw_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.port);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
@@ -171,10 +171,10 @@ class MAVLinkRcChannelsMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{MAVLINK_MSG_ID_RC_CHANNELS, "RC_CHANNELS", {"count", "rssi", "ch1_to_8"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_rc_channels_t p;
-    mavlink_msg_rc_channels_decode(&msg, &p);
+    mavlink_msg_rc_channels_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.chancount);
     fields[std::min(counter++, size - 1)] = MessageField(p.rssi);
     const int index = std::min(counter++, size - 1);
@@ -191,10 +191,10 @@ class MAVLinkRawImuMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{MAVLINK_MSG_ID_RAW_IMU, "RAW_IMU", {"accel", "gyro", "mag"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_raw_imu_t p;
-    mavlink_msg_raw_imu_decode(&msg, &p);
+    mavlink_msg_raw_imu_decode(msg, &p);
     const std::array<std::array<int16_t, 3>, 3> vectors = {
         {{p.xacc, p.yacc, p.zacc}, {p.xgyro, p.ygyro, p.zgyro}, {p.xmag, p.ymag, p.zmag}}};
     for (const auto& vector : vectors) {
@@ -215,10 +215,10 @@ class MAVLinkScaledPressureMessageFormatter : public MAVLinkMessageFormatterBase
                        {"absolute (hPa)", "differential (hPa)", "temperature (C)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_scaled_pressure_t p;
-    mavlink_msg_scaled_pressure_decode(&msg, &p);
+    mavlink_msg_scaled_pressure_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.press_abs);
     fields[std::min(counter++, size - 1)] = MessageField(p.press_diff);
     fields[std::min(counter++, size - 1)] = MessageField(p.temperature / 100.0f);
@@ -235,10 +235,10 @@ class MAVLinkGpsRawIntMessageFormatter : public MAVLinkMessageFormatterBase {
         {"fix", "sats", "lat_lon", "alt (m)", "eph (m)", "epv (m)", "vel (m/s)", "cog (deg)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_gps_raw_int_t p;
-    mavlink_msg_gps_raw_int_decode(&msg, &p);
+    mavlink_msg_gps_raw_int_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.fix_type);
     fields[std::min(counter++, size - 1)] = MessageField(p.satellites_visible);
     int index = std::min(counter++, size - 1);
@@ -260,10 +260,10 @@ class MAVLinkSystemTimeMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{MAVLINK_MSG_ID_SYSTEM_TIME, "SYSTEM_TIME", {"unix_us", "boot_ms"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_system_time_t p;
-    mavlink_msg_system_time_decode(&msg, &p);
+    mavlink_msg_system_time_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.time_unix_usec);
     fields[std::min(counter++, size - 1)] = MessageField(p.time_boot_ms);
     return std::min(counter, size);
@@ -278,10 +278,10 @@ class MAVLinkTerrainReportMessageFormatter : public MAVLinkMessageFormatterBase 
                        {"lat_lon", "spacing (m)", "terrain (m)", "current_height (m)", "pending", "loaded"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_terrain_report_t p;
-    mavlink_msg_terrain_report_decode(&msg, &p);
+    mavlink_msg_terrain_report_decode(msg, &p);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
     snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.7f,%.7f", p.lat / 1e7f,
@@ -304,10 +304,10 @@ class MAVLinkEkfStatusReportMessageFormatter : public MAVLinkMessageFormatterBas
                         "terrain_var"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_ekf_status_report_t p;
-    mavlink_msg_ekf_status_report_decode(&msg, &p);
+    mavlink_msg_ekf_status_report_decode(msg, &p);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
     snprintf(fields[index].string_value, sizeof(fields[index].string_value), "0x%04X", p.flags);
@@ -326,10 +326,10 @@ class MAVLinkVibrationMessageFormatter : public MAVLinkMessageFormatterBase {
     return MessageMeta{MAVLINK_MSG_ID_VIBRATION, "VIBRATION", {"vibration", "clipping"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_vibration_t p;
-    mavlink_msg_vibration_decode(&msg, &p);
+    mavlink_msg_vibration_decode(msg, &p);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
     snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.9g,%.9g,%.9g", p.vibration_x,
@@ -353,10 +353,10 @@ class MAVLinkAttitudeMessageFormatter : public MAVLinkMessageFormatterBase {
          "yawspeed (deg/s)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_attitude_t p;
-    mavlink_msg_attitude_decode(&msg, &p);
+    mavlink_msg_attitude_decode(msg, &p);
     constexpr float radians_to_degrees = 57.2957795f;
     fields[std::min(counter++, size - 1)] = MessageField(p.roll * radians_to_degrees);
     fields[std::min(counter++, size - 1)] = MessageField(p.pitch * radians_to_degrees);
@@ -376,10 +376,10 @@ class MAVLinkGlobalPositionIntMessageFormatter : public MAVLinkMessageFormatterB
                        {"lat_lon", "alt_msl (m)", "relative_alt (m)", "velocity_ned (m/s)", "heading (deg)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_global_position_int_t p;
-    mavlink_msg_global_position_int_decode(&msg, &p);
+    mavlink_msg_global_position_int_decode(msg, &p);
     int index = std::min(counter++, size - 1);
     fields[index] = MessageField(FieldDataType::string_);
     snprintf(fields[index].string_value, sizeof(fields[index].string_value), "%.7f,%.7f", p.lat / 1e7f, p.lon / 1e7f);
@@ -402,10 +402,10 @@ class MAVLinkVfrHudMessageFormatter : public MAVLinkMessageFormatterBase {
         {"airspeed (m/s)", "groundspeed (m/s)", "heading (deg)", "throttle (%)", "alt (m)", "climb (m/s)"}};
   }
 
-  int extract_message_fields(const mavlink_message_t& msg, MessageField* fields, int size) override {
+  int extract_message_fields(mavlink_message_t* msg, MessageField* fields, int size) override {
     int counter = 0;
     mavlink_vfr_hud_t p;
-    mavlink_msg_vfr_hud_decode(&msg, &p);
+    mavlink_msg_vfr_hud_decode(msg, &p);
     fields[std::min(counter++, size - 1)] = MessageField(p.airspeed);
     fields[std::min(counter++, size - 1)] = MessageField(p.groundspeed);
     fields[std::min(counter++, size - 1)] = MessageField(p.heading);
@@ -435,4 +435,4 @@ std::unordered_map<int, MAVLinkMessageFormatterBase*> _make_map_from_array(
   }
   return map;
 }
-std::unordered_map<int, MAVLinkMessageFormatterBase*> formatter_map = _make_map_from_array(formatters);
+std::unordered_map<int, MAVLinkMessageFormatterBase*> formatters_map = _make_map_from_array(formatters);
