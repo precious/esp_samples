@@ -1,0 +1,121 @@
+https://github.com/rnorris/gpsd/blob/master/www/NMEA.txt
+
+
+=== GGA -- Global Positioning System Fix Data ===
+$--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*hh<CR><LF>
+Field Number:
+
+1. Universal Time Coordinated (UTC)
+2. Latitude
+3. N or S (North or South)
+4. Longitude
+5. E or W (East or West)
+6. GPS Quality Indicator,
+     - 0 - fix not available,
+     - 1 - GPS fix,
+     - 2 - Differential GPS fix
+           (values above 2 are 2.3 features)
+     - 3 = PPS fix
+     - 4 = Real Time Kinematic
+     - 5 = Float RTK
+     - 6 = estimated (dead reckoning)
+     - 7 = Manual input mode
+     - 8 = Simulation mode
+7. Number of satellites in view, 00 - 12
+8. Horizontal Dilution of precision (meters)
+9. Antenna Altitude above/below mean-sea-level (geoid) (in meters)
+10. Units of antenna altitude, meters
+11. Geoidal separation, the difference between the WGS-84 earth
+     ellipsoid and mean-sea-level (geoid), "-" means mean-sea-level
+     below ellipsoid
+12. Units of geoidal separation, meters
+13. Age of differential GPS data, time in seconds since last SC104
+     type 1 or 9 update, null field when DGPS is not used
+14. Differential reference station ID, 0000-1023
+15. Checksum
+
+
+=== GLL - Geographic Position - Latitude/Longitude ===
+$--GLL,llll.ll,a,yyyyy.yy,a,hhmmss.ss,a,m,*hh<CR><LF>
+Field Number:
+
+1. Latitude
+2. N or S (North or South)
+3. Longitude
+4. E or W (East or West)
+5. Universal Time Coordinated (UTC)
+6. Status A - Data Valid, V - Data Invalid
+7. FAA mode indicator (NMEA 2.3 and later)
+8. Checksum
+
+
+=== GSA - GPS DOP and active satellites ===
+$--GSA,a,a,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x.x,x.x,x.x*hh<CR><LF>
+1. Selection mode: M=Manual, forced to operate in 2D or 3D, A=Automatic, 3D/2D
+2. Mode (1 = no fix, 2 = 2D fix, 3 = 3D fix)
+3. ID of 1st satellite used for fix
+4. ID of 2nd satellite used for fix
+5. ID of 3rd satellite used for fix
+6. ID of 4th satellite used for fix
+7. ID of 5th satellite used for fix
+8. ID of 6th satellite used for fix
+9. ID of 7th satellite used for fix
+10. ID of 8th satellite used for fix
+11. ID of 9th satellite used for fix
+12. ID of 10th satellite used for fix
+13. ID of 11th satellite used for fix
+14. ID of 12th satellite used for fix
+15. PDOP
+16. HDOP
+17. VDOP
+18. Checksum
+
+
+=== GSV - Satellites in view ===
+$--GSV,x,x,x,x,x,x,x,...*hh<CR><LF>
+Field Number:
+
+1. total number of GSV messages to be transmitted in this group
+2. 1-origin number of this GSV message  within current group
+3. total number of satellites in view (leading zeros sent)
+4. satellite PRN number (leading zeros sent)
+5. elevation in degrees (00-90) (leading zeros sent)
+6. azimuth in degrees to true north (000-359) (leading zeros sent)
+7. SNR in dB (00-99) (leading zeros sent)
+   more satellite info quadruples like 4-7
+   n) checksum
+
+
+=== RMC - Recommended Minimum Navigation Information ===
+$--RMC,hhmmss.ss,A,llll.ll,a,yyyyy.yy,a,x.x,x.x,xxxx,x.x,a,m,*hh<CR><LF>
+Field Number:
+
+1. UTC Time
+2. Status, V=Navigation receiver warning A=Valid
+3. Latitude
+4. N or S
+5. Longitude
+6. E or W
+7. Speed over ground, knots
+8. Track made good, degrees true
+9. Date, ddmmyy
+10. Magnetic Variation, degrees
+11. E or W
+12. FAA mode indicator (NMEA 2.3 and later)
+13. Checksum
+
+
+=== VTG - Track made good and Ground speed ===
+$--VTG,x.x,T,x.x,M,x.x,N,x.x,K,m,*hh<CR><LF>
+Field Number:
+
+1. Track Degrees
+2. T = True
+3. Track Degrees
+4. M = Magnetic
+5. Speed Knots
+6. N = Knots
+7. Speed Kilometers Per Hour
+8. K = Kilometers Per Hour
+9. FAA mode indicator (NMEA 2.3 and later)
+10. Checksum

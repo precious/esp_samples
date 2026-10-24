@@ -1,0 +1,14 @@
+[Unit]
+Description=GPS Data
+
+[Service]
+Type=simple
+User=seva
+WorkingDirectory=/home/seva/homework_gps
+ExecStart=/home/seva/homework_gps/env/bin/python3 /home/seva/homework_gps/main.py
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
