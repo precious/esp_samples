@@ -12,3 +12,4 @@ test_lora_home_spi/*
 test_spi_controller/*
 **/.vscode/*
 **/*.BAK*
+*.img
